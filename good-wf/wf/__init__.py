@@ -28,13 +28,10 @@ def _build_index(ref_genome: LatchFile = LatchFile("latch:///wgs/ref_genome/ecol
     ]
     subprocess.run(_bwa_cmd)
     output = os.path.dirname(os.path.abspath(ref_genome.local_path))
-
     return LatchDir(output, "latch:///wgs/ref_genome")
 
-
-# To-do: check if two reads are corrupted
 @small_task 
-def align_reads(ref_genome_dir: LatchDir = LatchDir("latch:///wgs/ref_genome"), read1: LatchFile = LatchFile("latch:///wgs/trimmed_fastqs/SRR2584863_1.trim.sub.fastq"), read2: LatchFile = LatchFile("latch:///wgs/trimmed_fastqs/SRR2584863_2.trim.sub.fastq")) -> LatchFile: 
+def align_reads(ref_genome_dir: LatchDir = LatchDir("latch:///wgs/ref_genome"), read1: LatchFile = LatchFile("latch:///wgs/data/SRR2584863_1.trim.sub.fastq"), read2: LatchFile = LatchFile("latch:///wgs/data/SRR2584863_2.trim.sub.fastq")) -> LatchFile: 
 
     local_ref_dir = ref_genome_dir.local_path
 
@@ -141,11 +138,10 @@ metadata = LatchMetadata(
     display_name="Simple WGS",
     documentation="your-docs.dev",
     author=LatchAuthor(
-        name="John von Neumann",
-        email="hungarianpapi4@gmail.com",
-        github="github.com/fluid-dynamix",
+        name="Hannah Le",
+        email="hannah@latch.bio",
     ),
-    repository="https://github.com/your-repo",
+    repository="https://github.com/variant-calling-latch.git",
     license="MIT",
     parameters={
         "read1": LatchParameter(
@@ -169,8 +165,8 @@ metadata = LatchMetadata(
 @workflow(metadata)
 def wgs(
     ref_genome: LatchFile = LatchFile("latch:///wgs/ref_genome/ecoli_rel606.fasta"), 
-    read1: LatchFile = LatchFile("latch:///wgs/trimmed_fastqs/SRR2584863_1.trim.sub.fastq"), 
-    read2: LatchFile = LatchFile("latch:///wgs/trimmed_fastqs/SRR2584863_2.trim.sub.fastq")
+    read1: LatchFile = LatchFile("latch:///wgs/data/SRR2584863_1.trim.sub.fastq"), 
+    read2: LatchFile = LatchFile("latch:///wgs/data/SRR2584863_2.trim.sub.fastq")
 ) -> LatchFile:
     """Description...
 
@@ -193,18 +189,18 @@ def wgs(
     sorted_bam = sort_bam(bam=bam)
     return variant_calling(ref_genome=ref_genome, sorted_bam=sorted_bam)
 
-
 """
 Add test data with a LaunchPlan. Provide default values in a dictionary with
 the parameter names as the keys. These default values will be available under
 the 'Test Data' dropdown at console.latch.bio.
 """
-# LaunchPlan(
-#     wgs,
-#     "Test Data",
-#     {
-#         "ref_genome": LatchFile("latch:///wgs/ref_genome/ecoli_rel606.fasta"),
-#         "read1": LatchFile("latch:///wgs/trimmed_fastqs/SRR2584863_1.trim.sub.fastq"),
-#         "read2": LatchFile("latch:///wgs/trimmed_fastqs/SRR2584863_2.trim.sub.fastq"),
-#     },
-# )
+LaunchPlan(
+    wgs,
+    "Test Data",
+    {
+        "ref_genome": LatchFile("latch:///wgs/ref_genome/ecoli_rel606.fasta"),
+        "read1": LatchFile("latch:///wgs/data/SRR2584863_1.trim.sub.fastq"),
+        "read2": LatchFile("latch:///wgs/data/SRR2584863_2.trim.sub.fastq"),
+    },
+)
+

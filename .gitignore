@@ -1,7 +1,8 @@
 # Latch logs
-.logs/
-.ssh_key
-.ssh_key.pub
+*/.logs/
+*/.ssh_key
+*/.ssh_key.pub
+*/.latch*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -10,7 +10,6 @@ from latch.resources.launch_plan import LaunchPlan
 from latch.types import LatchAuthor, LatchFile, LatchMetadata, LatchParameter, LatchDir
 from dataclasses import dataclass
 from dataclasses_json import dataclass_json
-import time
 import glob
 
 @dataclass_json
@@ -199,12 +198,12 @@ Add test data with a LaunchPlan. Provide default values in a dictionary with
 the parameter names as the keys. These default values will be available under
 the 'Test Data' dropdown at console.latch.bio.
 """
-# LaunchPlan(
-#     wgs,
-#     "Test Data",
-#     {
-#         "ref_genome": LatchFile("latch:///wgs/ref_genome/ecoli_rel606.fasta"),
-#         "read1": LatchFile("latch:///wgs/trimmed_fastqs/SRR2584863_1.trim.sub.fastq"),
-#         "read2": LatchFile("latch:///wgs/trimmed_fastqs/SRR2584863_2.trim.sub.fastq"),
-#     },
-# )
+LaunchPlan(
+    wgs,
+    "Test Data",
+    {
+        "ref_genome": LatchFile("latch:///wgs/ref_genome/ecoli_rel606.fasta"),
+        "read1": LatchFile("latch:///wgs/data/SRR2584863_1.trim.sub.fastq"),
+        "read2": LatchFile("latch:///wgs/data/SRR2584863_2.trim.sub.fastq"),
+    },
+)
