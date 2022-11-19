@@ -2,7 +2,7 @@ FROM 812206152185.dkr.ecr.us-west-2.amazonaws.com/latch-base:6839-main
 
 RUN apt-get update && apt-get install -y curl unzip git
 
-RUN apt install bwa
+# RUN apt install bwa
 RUN apt-get update -y &&\
     apt-get install -y autoconf samtools
 RUN apt-get install bcftools
