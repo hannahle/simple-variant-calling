@@ -19,7 +19,7 @@ class PairedReads:
     r2: LatchFile
 
 @small_task
-def _build_index(ref_genome: LatchFile = LatchFile("latch:///wgs/ref_genome/ecoli_rel606.fasta")) -> LatchDir: 
+def build_index(ref_genome: LatchFile = LatchFile("latch:///wgs/ref_genome/ecoli_rel606.fasta")) -> LatchDir: 
     _bwa_cmd = [
         "bwa", 
         "index",
@@ -186,7 +186,7 @@ def wgs(
     * content1
     * content2
     """
-    ref_genome_dir = _build_index(ref_genome=ref_genome)
+    ref_genome_dir = build_index(ref_genome=ref_genome)
     sam = align_reads(ref_genome_dir=ref_genome_dir, read1=read1, read2=read2)
     bam = convert_to_bam(sam=sam)
     sorted_bam = sort_bam(bam=bam)
