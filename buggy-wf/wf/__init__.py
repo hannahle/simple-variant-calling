@@ -12,19 +12,19 @@ from dataclasses import dataclass
 from dataclasses_json import dataclass_json
 import glob
 
+
 @dataclass_json
 @dataclass
-class PairedReads: 
+class PairedReads:
     r1: LatchFile
     r2: LatchFile
 
+
 @small_task
-def build_index(ref_genome: LatchFile = LatchFile("latch:///wgs/ref_genome/ecoli_rel606.fasta")) -> LatchDir: 
-    _bwa_cmd = [
-        "bwa", 
-        "index",
-        ref_genome.local_path
-    ]
+def build_index(
+    ref_genome: LatchFile = LatchFile("latch:///wgs/ref_genome/ecoli_rel606.fasta"),
+) -> LatchDir:
+    _bwa_cmd = ["bwa", "index", ref_genome.local_path]
     subprocess.run(_bwa_cmd)
     output = os.path.dirname(os.path.abspath(ref_genome.local_path))
 
@@ -32,62 +32,69 @@ def build_index(ref_genome: LatchFile = LatchFile("latch:///wgs/ref_genome/ecoli
 
 
 # To-do: check if two reads are corrupted
-@small_task 
-def align_reads(ref_genome_dir: LatchDir = LatchDir("latch:///wgs/ref_genome"), read1: LatchFile = LatchFile("latch:///wgs/trimmed_fastqs/SRR2584863_1.trim.sub.fastq"), read2: LatchFile = LatchFile("latch:///wgs/trimmed_fastqs/SRR2584863_2.trim.sub.fastq")) -> LatchFile: 
+@small_task
+def align_reads(
+    ref_genome_dir: LatchDir = LatchDir("latch:///wgs/ref_genome"),
+    read1: LatchFile = LatchFile(
+        "latch:///wgs/trimmed_fastqs/SRR2584863_1.trim.sub.fastq"
+    ),
+    read2: LatchFile = LatchFile(
+        "latch:///wgs/trimmed_fastqs/SRR2584863_2.trim.sub.fastq"
+    ),
+) -> LatchFile:
 
     local_ref_dir = ref_genome_dir.local_path
 
     fastas = glob.glob(f"{local_ref_dir}/*.fasta")
 
-    sam_file = Path('aligned.sam').resolve()
+    sam_file = Path("aligned.sam").resolve()
 
     print(fastas, flush=True)
 
-    if len(fastas) > 0: 
-        ref_genome = str(Path(fastas[0]).resolve()) 
+    if len(fastas) > 0:
+        ref_genome = str(Path(fastas[0]).resolve())
         cmd = [
-            "bwa", 
+            "bwa",
             "mem",
-            ref_genome, 
+            ref_genome,
             read1.local_path,
             read2.local_path,
             "-o",
-            str(sam_file)
+            str(sam_file),
         ]
         subprocess.run(cmd)
     return LatchFile(str(sam_file), "latch:///wgs/results/aligned.sam")
 
+
 @small_task
-def convert_to_bam(sam: LatchFile = LatchFile("latch:///wgs/results/aligned.sam")) -> LatchFile: 
+def convert_to_bam(
+    sam: LatchFile = LatchFile("latch:///wgs/results/aligned.sam"),
+) -> LatchFile:
     bam_file = Path("aligned.bam").resolve()
     _samtools_cmd = [
-        "samtools", 
+        "samtools",
         "view",
-        "-S", 
+        "-S",
         "-b",
         sam.local_path,
         "-o",
-        str(bam_file)
+        str(bam_file),
     ]
 
     subprocess.run(_samtools_cmd)
 
     return LatchFile(str(bam_file), "latch:///wgs/results/aligned.bam")
 
+
 @small_task
-def sort_bam(bam: LatchFile) -> LatchFile: 
+def sort_bam(bam: LatchFile) -> LatchFile:
     sorted_bam = Path("aligned.sorted.bam").resolve()
-    _sort_cmd = [
-        "samtools", 
-        "sort", 
-        "-o",
-        str(sorted_bam),
-        bam.local_path
-    ]
+    _sort_cmd = ["samtools", "sort", "-o", str(sorted_bam), bam.local_path]
 
     subprocess.run(_sort_cmd)
 
     return LatchFile(str(sorted_bam), "latch:///wgs/results/aligned.sorted.bam")
+
 
 @small_task
 def variant_calling(ref_genome: LatchFile, sorted_bam: LatchFile) -> LatchFile:
@@ -95,15 +102,15 @@ def variant_calling(ref_genome: LatchFile, sorted_bam: LatchFile) -> LatchFile:
     # Calculate read coverage
     bcf = Path("raw.bcf").resolve()
     _read_coverage = [
-        "bcftools", 
-        "mpileup", 
+        "bcftools",
+        "mpileup",
         "-O",
-        "b", 
+        "b",
         "-o",
         str(bcf),
         "-f",
         ref_genome.local_path,
-        sorted_bam.local_path
+        sorted_bam.local_path,
     ]
     subprocess.run(_read_coverage)
 
@@ -111,14 +118,14 @@ def variant_calling(ref_genome: LatchFile, sorted_bam: LatchFile) -> LatchFile:
     vcf = Path("variants.vcf").resolve()
     _snv_detection = [
         "bcftools",
-        "call", 
-        "--ploidy", 
+        "call",
+        "--ploidy",
         "1",
-        "-m", 
+        "-m",
         "-v",
         "-o",
         str(vcf),
-        str(bcf)
+        str(bcf),
     ]
     subprocess.run(_snv_detection)
 
@@ -126,8 +133,8 @@ def variant_calling(ref_genome: LatchFile, sorted_bam: LatchFile) -> LatchFile:
     final_vcf = Path("final_variants.vcf").resolve()
     f = open(str(final_vcf), "w")
     _vcfutils_cmd = [
-        'vcfutils.pl', 
-        'varFilter', 
+        "vcfutils.pl",
+        "varFilter",
         str(vcf),
     ]
     subprocess.run(_vcfutils_cmd, stdout=f)
@@ -157,9 +164,7 @@ metadata = LatchMetadata(
             description="Paired-end read 2 file to be assembled.",
             batch_table_column=True,  # Show this parameter in batched mode.
         ),
-        "ref_genome": LatchParameter(
-            display_name="Reference Genome"
-        )
+        "ref_genome": LatchParameter(display_name="Reference Genome"),
     },
     tags=[],
 )
@@ -167,9 +172,13 @@ metadata = LatchMetadata(
 
 @workflow(metadata)
 def wgs(
-    ref_genome: LatchFile = LatchFile("latch:///wgs/ref_genome/ecoli_rel606.fasta"), 
-    read1: LatchFile = LatchFile("latch:///wgs/trimmed_fastqs/SRR2584863_1.trim.sub.fastq"), 
-    read2: LatchFile = LatchFile("latch:///wgs/trimmed_fastqs/SRR2584863_2.trim.sub.fastq")
+    ref_genome: LatchFile = LatchFile("latch:///wgs/ref_genome/ecoli_rel606.fasta"),
+    read1: LatchFile = LatchFile(
+        "latch:///wgs/trimmed_fastqs/SRR2584863_1.trim.sub.fastq"
+    ),
+    read2: LatchFile = LatchFile(
+        "latch:///wgs/trimmed_fastqs/SRR2584863_2.trim.sub.fastq"
+    ),
 ) -> LatchFile:
     """Description...
 
