@@ -26,7 +26,7 @@ def build_index(
 ) -> LatchDir:
     _bwa_cmd = ["bwa", "index", ref_genome.local_path]
     subprocess.run(_bwa_cmd)
-    output = os.path.dirname(os.path.abspath(ref_genome.local_path))
+    output = Path(ref_genome.local_path).resolve().parent
 
     return LatchDir(output, "latch:///wgs/ref_genome")
 
