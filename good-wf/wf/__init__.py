@@ -27,9 +27,9 @@ def build_index(
 ) -> LatchDir:
     _bwa_cmd = ["bwa", "index", ref_genome.local_path]
     subprocess.run(_bwa_cmd)
-    output = Path(ref_genome.local_path).resolve().parent
-    return LatchDir(output, "latch:///wgs/ref_genome")
 
+    output = Path(ref_genome.local_path).parent.resolve()
+    return LatchDir(str(output), "latch:///wgs/ref_genome")
 
 @small_task
 def align_reads(
